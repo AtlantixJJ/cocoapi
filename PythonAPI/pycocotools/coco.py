@@ -67,6 +67,21 @@ def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
 
+def draw_bbox(m, width=2):
+    # Add (psedo) bounding box
+    w = np.where(m.max(0))[0]
+    h = np.where(m.max(1))[0]
+    ymin, ymax = w.min(), w.max()
+    xmin, xmax = h.min(), h.max()
+    for delta in range(width):
+        xmin += delta
+        ymin += delta
+        xmax -= delta
+        ymax -= delta
+        m[xmin:xmax, ymin] = m[xmin:xmax, ymax] = 1
+        m[xmin, ymin:ymax] = m[xmax, ymin:ymax] = 1
+    return m
+
 class COCO:
     def __init__(self, annotation_file=None):
         """
@@ -266,9 +281,12 @@ class COCO:
                         else:
                             rle = [ann['segmentation']]
                         m = maskUtils.decode(rle)
+                        m = draw_bbox(m)
                         img = np.ones( (m.shape[0], m.shape[1], 3) )
                         if ann['iscrowd'] == 1:
-                            color_mask = np.array([2.0,166.0,101.0])/255
+                            cat_id = ann['category_id']
+                            color_mask = np.random.RandomState(cat_id).random((1, 3)).tolist()[0]
+                            #color_mask = np.array([2.0,166.0,101.0])/255
                         if ann['iscrowd'] == 0:
                             color_mask = np.random.random((1, 3)).tolist()[0]
                         for i in range(3):
