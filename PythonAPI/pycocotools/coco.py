@@ -63,6 +63,28 @@ elif PYTHON_VERSION == 3:
     from urllib.request import urlretrieve
 
 
+def uint82bin(n, count=8):
+    """returns the binary of integer n, count refers to amount of bits"""
+    return ''.join([str((n >> y) & 1) for y in range(count-1, -1, -1)])
+
+
+def labelcolormap(N):
+    cmap = np.zeros((N, 3), dtype=np.float32)
+    for i in range(N):
+        r, g, b = 0, 0, 0
+        id = i
+        for j in range(7):
+            str_id = uint82bin(id)
+            r = r ^ (np.uint8(str_id[-1]) << (7-j))
+            g = g ^ (np.uint8(str_id[-2]) << (7-j))
+            b = b ^ (np.uint8(str_id[-3]) << (7-j))
+            id = id >> 3
+        cmap[i, 0] = r / 255.
+        cmap[i, 1] = g / 255.
+        cmap[i, 2] = b / 255.
+    return cmap
+
+
 def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
@@ -132,6 +154,8 @@ class COCO:
         self.catToImgs = catToImgs
         self.imgs = imgs
         self.cats = cats
+        self.n_class = len(self.dataset['categories'])
+        self.color_map = labelcolormap(self.n_class + 1)
 
     def info(self):
         """
@@ -285,7 +309,8 @@ class COCO:
                         img = np.ones( (m.shape[0], m.shape[1], 3) )
                         if ann['iscrowd'] == 1:
                             cat_id = ann['category_id']
-                            color_mask = np.random.RandomState(cat_id).random((1, 3)).tolist()[0]
+                            color_mask = self.color_map[cat_id].tolist()
+                            #color_mask = np.random.RandomState(cat_id).random((1, 3)).tolist()[0]
                             #color_mask = np.array([2.0,166.0,101.0])/255
                         if ann['iscrowd'] == 0:
                             color_mask = np.random.random((1, 3)).tolist()[0]
