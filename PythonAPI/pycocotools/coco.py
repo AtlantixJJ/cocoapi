@@ -91,17 +91,20 @@ def _isArrayLike(obj):
 
 def draw_bbox(m, width=2):
     # Add (psedo) bounding box
-    w = np.where(m.max(0))[0]
-    h = np.where(m.max(1))[0]
-    ymin, ymax = w.min(), w.max()
-    xmin, xmax = h.min(), h.max()
-    for delta in range(width):
-        xmin += delta
-        ymin += delta
-        xmax -= delta
-        ymax -= delta
-        m[xmin:xmax, ymin] = m[xmin:xmax, ymax] = 1
-        m[xmin, ymin:ymax] = m[xmax, ymin:ymax] = 1
+    try:
+        w = np.where(m.max(0))[0]
+        h = np.where(m.max(1))[0]
+        ymin, ymax = w.min(), w.max()
+        xmin, xmax = h.min(), h.max()
+        for delta in range(width):
+            xmin += delta
+            ymin += delta
+            xmax -= delta
+            ymax -= delta
+            m[xmin:xmax, ymin] = m[xmin:xmax, ymax] = 1
+            m[xmin, ymin:ymax] = m[xmax, ymin:ymax] = 1
+    except:
+        pass
     return m
 
 class COCO:
